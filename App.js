@@ -8,6 +8,7 @@ import {
     TextInput,
     ScrollView,
     Alert,
+    Platform,
 } from "react-native";
 import { theme } from "./color";
 import AsyncStorage from "@react-native-async-storage/async-storage";
@@ -50,24 +51,37 @@ export default function App() {
 
     const loadToDos = async () => {
         const toDoJSON = await AsyncStorage.getItem(STORAGE_TODOS_KEY);
-        setToDos(JSON.parse(toDoJSON));
+        if (toDoJSON != null) {
+            setToDos(JSON.parse(toDoJSON));
+        }
     };
 
     const deleteToDo = async (key) => {
-        Alert.alert("Delete To Do?", "Are you sure?", [
-            { text: "Cancel" },
-            {
-                text: "I'm sure",
-                style: "destructive",
-                onPress: async () => {
-                    const newToDos = { ...toDos };
-                    delete newToDos[key];
-                    setToDos(newToDos);
+        if (Platform.OS === "web") {
+            const ok = confirm("Delete To Do?");
+            if (ok === true) {
+                const newToDos = { ...toDos };
+                delete newToDos[key];
+                setToDos(newToDos);
 
-                    await saveToDos(newToDos);
+                await saveToDos(newToDos);
+            }
+        } else {
+            Alert.alert("Delete To Do?", "Are you sure?", [
+                { text: "Cancel" },
+                {
+                    text: "I'm sure",
+                    style: "destructive",
+                    onPress: async () => {
+                        const newToDos = { ...toDos };
+                        delete newToDos[key];
+                        setToDos(newToDos);
+
+                        await saveToDos(newToDos);
+                    },
                 },
-            },
-        ]);
+            ]);
+        }
     };
 
     const travel = async () => {

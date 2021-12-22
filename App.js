@@ -162,88 +162,90 @@ export default function App() {
                 />
             </View>
             <ScrollView>
-                {Object.keys(toDos).map((key) =>
-                    toDos[key].working === working ? (
-                        <View style={styles.toDo} key={key}>
-                            <View style={styles.toDoTextContainer}>
-                                {update === key ? (
-                                    <TextInput
-                                        style={styles.toDoTextInput}
-                                        onSubmitEditing={({
-                                            nativeEvent: { text },
-                                        }) => {
-                                            updateToDoText(key, text);
-                                        }}
-                                    >
-                                        {toDos[key].text}
-                                    </TextInput>
-                                ) : (
-                                    <Text
-                                        numberOfLines={0}
-                                        style={
-                                            toDos[key].done === true
-                                                ? {
-                                                      ...styles.toDoText,
-                                                      textDecorationLine:
-                                                          "line-through",
-                                                  }
-                                                : styles.toDoText
-                                        }
-                                    >
-                                        {toDos[key].text}
-                                    </Text>
-                                )}
-                            </View>
+                {toDos === null
+                    ? null
+                    : Object.keys(toDos).map((key) =>
+                          toDos[key].working === working ? (
+                              <View style={styles.toDo} key={key}>
+                                  <View style={styles.toDoTextContainer}>
+                                      {update === key ? (
+                                          <TextInput
+                                              style={styles.toDoTextInput}
+                                              onSubmitEditing={({
+                                                  nativeEvent: { text },
+                                              }) => {
+                                                  updateToDoText(key, text);
+                                              }}
+                                          >
+                                              {toDos[key].text}
+                                          </TextInput>
+                                      ) : (
+                                          <Text
+                                              numberOfLines={0}
+                                              style={
+                                                  toDos[key].done === true
+                                                      ? {
+                                                            ...styles.toDoText,
+                                                            textDecorationLine:
+                                                                "line-through",
+                                                        }
+                                                      : styles.toDoText
+                                              }
+                                          >
+                                              {toDos[key].text}
+                                          </Text>
+                                      )}
+                                  </View>
 
-                            <View style={styles.accessoryContainer}>
-                                <Pressable
-                                    onPress={() => {
-                                        onDone(key);
-                                    }}
-                                >
-                                    {toDos[key].done === true ? (
-                                        <AntDesign
-                                            name="checksquare"
-                                            size={24}
-                                            color="orange"
-                                        />
-                                    ) : (
-                                        <AntDesign
-                                            name="checksquareo"
-                                            size={24}
-                                            color="orange"
-                                        />
-                                    )}
-                                </Pressable>
+                                  <View style={styles.accessoryContainer}>
+                                      <Pressable
+                                          onPress={() => {
+                                              onDone(key);
+                                          }}
+                                      >
+                                          {toDos[key].done === true ? (
+                                              <AntDesign
+                                                  name="checksquare"
+                                                  size={24}
+                                                  color="orange"
+                                              />
+                                          ) : (
+                                              <AntDesign
+                                                  name="checksquareo"
+                                                  size={24}
+                                                  color="orange"
+                                              />
+                                          )}
+                                      </Pressable>
 
-                                <Pressable
-                                    onPress={() => {
-                                        update === ""
-                                            ? onUpdate(key)
-                                            : onUpdate("");
-                                    }}
-                                >
-                                    <Octicons
-                                        name="pencil"
-                                        size={24}
-                                        color="orange"
-                                    />
-                                </Pressable>
-                                <Pressable
-                                    onPress={() => {
-                                        deleteToDo(key);
-                                    }}
-                                >
-                                    <Ionicons
-                                        name="trash-outline"
-                                        size={24}
-                                        color="orange"
-                                    />
-                                </Pressable>
-                            </View>
-                        </View>
-                    ) : null,
-                )}
+                                      <Pressable
+                                          onPress={() => {
+                                              update === ""
+                                                  ? onUpdate(key)
+                                                  : onUpdate("");
+                                          }}
+                                      >
+                                          <Octicons
+                                              name="pencil"
+                                              size={24}
+                                              color="orange"
+                                          />
+                                      </Pressable>
+                                      <Pressable
+                                          onPress={() => {
+                                              deleteToDo(key);
+                                          }}
+                                      >
+                                          <Ionicons
+                                              name="trash-outline"
+                                              size={24}
+                                              color="orange"
+                                          />
+                                      </Pressable>
+                                  </View>
+                              </View>
+                          ) : null,
+                      )}
             </ScrollView>
         </View>
     );

@@ -12,25 +12,44 @@ import {
 import { theme } from "./color";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { Ionicons } from "@expo/vector-icons";
+import { AntDesign } from "@expo/vector-icons";
+import { Octicons } from "@expo/vector-icons";
 
-const STORAGE_KEY = "@toDos";
+const STORAGE_TODOS_KEY = "@toDos";
+const STORAGE_CURRENT_WORK_KEY = "@working";
 
 export default function App() {
     const [working, setWorking] = useState(true);
     const [text, setText] = useState("");
     const [toDos, setToDos] = useState({});
+    const [update, setUpdate] = useState("");
 
     useEffect(() => {
+        loadWork();
         loadToDos();
     }, []);
 
+    const saveCurrentWork = async (work) => {
+        await AsyncStorage.setItem(
+            STORAGE_CURRENT_WORK_KEY,
+            JSON.stringify(work),
+        );
+    };
+
+    const loadWork = async () => {
+        const savedWorking = await AsyncStorage.getItem(
+            STORAGE_CURRENT_WORK_KEY,
+        );
+        setWorking(JSON.parse(savedWorking));
+    };
+
     const saveToDos = async (toSave) => {
         const toDoJSON = JSON.stringify(toSave);
-        await AsyncStorage.setItem(STORAGE_KEY, toDoJSON);
+        await AsyncStorage.setItem(STORAGE_TODOS_KEY, toDoJSON);
     };
 
     const loadToDos = async () => {
-        const toDoJSON = await AsyncStorage.getItem(STORAGE_KEY);
+        const toDoJSON = await AsyncStorage.getItem(STORAGE_TODOS_KEY);
         setToDos(JSON.parse(toDoJSON));
     };
 
@@ -44,24 +63,61 @@ export default function App() {
                     const newToDos = { ...toDos };
                     delete newToDos[key];
                     setToDos(newToDos);
+
                     await saveToDos(newToDos);
                 },
             },
         ]);
     };
 
-    const travel = () => setWorking(false);
-    const work = () => setWorking(true);
+    const travel = async () => {
+        const w = false;
+        setWorking(w);
+        await saveCurrentWork(w);
+    };
+
+    const work = async () => {
+        const w = true;
+        setWorking(w);
+        await saveCurrentWork(w);
+    };
+
+    const onDone = async (key) => {
+        const newToDos = { ...toDos };
+        let currentDone = newToDos[key].done;
+        newToDos[key].done = !currentDone;
+        setToDos(newToDos);
+
+        await saveToDos(newToDos);
+    };
+
+    const onUpdate = (key) => {
+        setUpdate(key);
+    };
+
     const onChangeText = (payload) => setText(payload);
+    const updateToDoText = async (key, text) => {
+        const newToDos = { ...toDos };
+        newToDos[key].text = text;
+
+        setToDos(newToDos);
+        setUpdate("");
+
+        await saveToDos(newToDos);
+    };
     const addToDo = async () => {
         if (text === "") {
             return;
         }
 
+        const key = Date.now();
+
         const newToDos = {
             ...toDos,
-            [Date.now()]: { text, working },
+            [key]: { text, working, done: false },
         };
+
+        console.log(newToDos);
 
         setToDos(newToDos);
         await saveToDos(newToDos);
@@ -109,20 +165,82 @@ export default function App() {
                 {Object.keys(toDos).map((key) =>
                     toDos[key].working === working ? (
                         <View style={styles.toDo} key={key}>
-                            <Text numberOfLines={0} style={styles.toDoText}>
-                                {toDos[key].text}
-                            </Text>
-                            <Pressable
-                                onPress={() => {
-                                    deleteToDo(key);
-                                }}
-                            >
-                                <Ionicons
-                                    name="trash-outline"
-                                    size={24}
-                                    color="orange"
-                                />
-                            </Pressable>
+                            <View style={styles.toDoTextContainer}>
+                                {update === key ? (
+                                    <TextInput
+                                        style={styles.toDoTextInput}
+                                        onSubmitEditing={({
+                                            nativeEvent: { text },
+                                        }) => {
+                                            updateToDoText(key, text);
+                                        }}
+                                    >
+                                        {toDos[key].text}
+                                    </TextInput>
+                                ) : (
+                                    <Text
+                                        numberOfLines={0}
+                                        style={
+                                            toDos[key].done === true
+                                                ? {
+                                                      ...styles.toDoText,
+                                                      textDecorationLine:
+                                                          "line-through",
+                                                  }
+                                                : styles.toDoText
+                                        }
+                                    >
+                                        {toDos[key].text}
+                                    </Text>
+                                )}
+                            </View>
+
+                            <View style={styles.accessoryContainer}>
+                                <Pressable
+                                    onPress={() => {
+                                        onDone(key);
+                                    }}
+                                >
+                                    {toDos[key].done === true ? (
+                                        <AntDesign
+                                            name="checksquare"
+                                            size={24}
+                                            color="orange"
+                                        />
+                                    ) : (
+                                        <AntDesign
+                                            name="checksquareo"
+                                            size={24}
+                                            color="orange"
+                                        />
+                                    )}
+                                </Pressable>
+
+                                <Pressable
+                                    onPress={() => {
+                                        update === ""
+                                            ? onUpdate(key)
+                                            : onUpdate("");
+                                    }}
+                                >
+                                    <Octicons
+                                        name="pencil"
+                                        size={24}
+                                        color="orange"
+                                    />
+                                </Pressable>
+                                <Pressable
+                                    onPress={() => {
+                                        deleteToDo(key);
+                                    }}
+                                >
+                                    <Ionicons
+                                        name="trash-outline"
+                                        size={24}
+                                        color="orange"
+                                    />
+                                </Pressable>
+                            </View>
                         </View>
                     ) : null,
                 )}
@@ -159,6 +277,7 @@ const styles = StyleSheet.create({
     },
 
     toDo: {
+        flex: 1,
         backgroundColor: theme.toDoBg,
         marginBottom: 10,
         paddingVertical: 20,
@@ -173,5 +292,27 @@ const styles = StyleSheet.create({
         color: "white",
         fontSize: 16,
         fontWeight: "500",
+    },
+
+    accessoryContainer: {
+        flex: 1.5,
+        flexDirection: "row",
+        alignItems: "center",
+        justifyContent: "space-between",
+        marginLeft: 10,
+    },
+
+    toDoTextContainer: {
+        flex: 3,
+    },
+
+    toDoTextInput: {
+        backgroundColor: "white",
+        color: "black",
+        fontSize: 16,
+        fontWeight: "500",
+        paddingVertical: 10,
+        paddingHorizontal: 10,
+        borderRadius: 5,
     },
 });

@@ -31,29 +31,40 @@ export default function App() {
     }, []);
 
     const saveCurrentWork = async (work) => {
-        await AsyncStorage.setItem(
-            STORAGE_CURRENT_WORK_KEY,
-            JSON.stringify(work),
-        );
+        try {
+            await AsyncStorage.setItem(
+                STORAGE_CURRENT_WORK_KEY,
+                JSON.stringify(work),
+            );
+        } catch {}
     };
 
     const loadWork = async () => {
-        const savedWorking = await AsyncStorage.getItem(
-            STORAGE_CURRENT_WORK_KEY,
-        );
-        setWorking(JSON.parse(savedWorking));
+        try {
+            const savedWorking = await AsyncStorage.getItem(
+                STORAGE_CURRENT_WORK_KEY,
+            );
+
+            if (savedWorking) {
+                setWorking(JSON.parse(savedWorking));
+            }
+        } catch {}
     };
 
     const saveToDos = async (toSave) => {
-        const toDoJSON = JSON.stringify(toSave);
-        await AsyncStorage.setItem(STORAGE_TODOS_KEY, toDoJSON);
+        try {
+            const toDoJSON = JSON.stringify(toSave);
+            await AsyncStorage.setItem(STORAGE_TODOS_KEY, toDoJSON);
+        } catch {}
     };
 
     const loadToDos = async () => {
-        const toDoJSON = await AsyncStorage.getItem(STORAGE_TODOS_KEY);
-        if (toDoJSON != null) {
-            setToDos(JSON.parse(toDoJSON));
-        }
+        try {
+            const toDoJSON = await AsyncStorage.getItem(STORAGE_TODOS_KEY);
+            if (toDoJSON != null) {
+                setToDos(JSON.parse(toDoJSON));
+            }
+        } catch {}
     };
 
     const deleteToDo = async (key) => {
